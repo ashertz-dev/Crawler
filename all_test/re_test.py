@@ -1,5 +1,4 @@
 import re
-from scrapy import Selector
 
 
 info = "姓名:Hypnos1998 生日:1998年4月16日 本科-2017.09.01"
