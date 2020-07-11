@@ -1,7 +1,5 @@
 import os
 import re
-import time
-from threading import Thread
 
 
 def file_dir(root):
@@ -30,10 +28,9 @@ if __name__ == '__main__':
     """
     path = input("Please input path or input \"0\" to exit :\n")
     if path == "0":
-        path = "E:\\Photos\\Cosplay\\Collection\\@五更百鬼密码五鬼百更@18233"
-
+        path = "E:\\Photos\\Cosplay\\Collection\\root_file_name"
     print(path)
-    # files = file_dir(path)
-    # rename(files, path)
-    # for rm in files[0][1]:
-    #     os.rmdir(path+"\\"+rm)
+    files = file_dir(path)
+    rename(files, path)
+    for rm in files[0][1]:
+        os.rmdir(path+"\\"+rm)
