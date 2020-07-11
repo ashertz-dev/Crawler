@@ -24,7 +24,7 @@ def rename(file_list, new_path):
 
 if __name__ == '__main__':
     """
-    用于重命名文件
+    用于重命名文件并提出子文件夹中的文件
     """
     path = input("Please input path or input \"0\" to exit :\n")
     if path == "0":
