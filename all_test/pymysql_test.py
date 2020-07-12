@@ -19,4 +19,3 @@ try:
 except Exception as e:
     print(e)
     print("false")
-print("This is a test")
