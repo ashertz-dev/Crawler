@@ -1,5 +1,6 @@
 import re
 import ast
+import time
 from datetime import datetime
 
 import requests
@@ -89,43 +90,28 @@ def parse_list(_url):
     :param _url: 链接
     :return:
     """
-    # print(_url)
     rest_text = requests.get(_url, cookies=cookie_dic).text
     sel = Selector(text=rest_text)
     all_tr = sel.xpath("//table[@class='forums_tab_table']/tbody//tr")
-    # print(len(all_tr))
     for tr in all_tr:
         topic = Topic()
         if tr.xpath(".//td[1]/span/text()").extract():
             status = tr.xpath(".//td[1]/span/text()").extract()[0]
             topic.status = status
-            # print("status " + status)
         if tr.xpath(".//td[2]/em/text()").extract():
             score = tr.xpath(".//td[2]/em/text()").extract()[0]
             topic.score = int(score)
-            # print("score " + score)
         topic_url = parse.urljoin(main_url, tr.xpath(".//td[3]/a[contains(@class,'forums_title')]/@href").extract()[0])
-        # print("topic_url " + topic_url)
-        topic_title = tr.xpath(".//td[3]/a[contains(@class,'forums_title')]/@href").extract()[0]
-        # print("topic_title " + topic_title)
+        topic_title = tr.xpath(".//td[3]/a[contains(@class,'forums_title')]/text()").extract()[0]
         author_url = parse.urljoin(main_url, tr.xpath(".//td[4]/a/@href").extract()[0])
-        # print("author_url " + author_url)
         author_id = author_url.split("/")[-1]
-        # print("author_id " + author_id)
         create_time = tr.xpath(".//td[4]/em/text()").extract()[0]
-        # print("create_time " + create_time)
         create_time = datetime.strptime(create_time, "%Y-%m-%d %H:%M")
-        # print("create_time " + str(create_time))
         answer_info = tr.xpath(".//td[5]/span/text()").extract()[0]
-        # print("answer_info " + answer_info)
         answer_nums = answer_info.split("/")[0]
-        # print("answer_nums " + answer_nums)
         click_nums = answer_info.split("/")[1]
-        # print("click_nums " + click_nums)
         last_time_str = tr.xpath(".//td[6]/em/text()").extract()[0]
-        # print("last_time_str " + last_time_str)
         last_time = datetime.strptime(last_time_str, "%Y-%m-%d %H:%M")
-        # print("last_time " + str(last_time))
 
         topic.id = int(topic_url.split("/")[-1])
         topic.title = topic_title
@@ -139,6 +125,12 @@ def parse_list(_url):
             topic.save()
         else:
             topic.save(force_insert=True)
+
+    print(_url + " Finished")
+    next_page_class = sel.xpath("//a[contains(@class,'next_page')]/@class").extract()[0].split(" ")
+    if not next_page_class.__contains__("disabled"):
+        next_page_url = sel.xpath("//a[contains(@class,'next_page')]/@href").extract()[0]
+        parse_list(parse.urljoin(main_url, next_page_url))
 
         # parse_topic(topic_url)
 

@@ -14,7 +14,7 @@ class Topic(BaseModel):
     title = CharField()
     content = TextField(default="")
     author = CharField()
-    creat_time = DateTimeField(null=True)
+    create_time = DateTimeField()
     answer_nums = IntegerField(default=0)
     click_nums = IntegerField(default=0)
     # 点赞数

@@ -8,6 +8,8 @@ if __name__ == '__main__':
     test = Test(url, params)
     text = test.get_text()
     sel = Selector(text=text)
+    next_class = sel.xpath("//div[contains(@id,'ftConw')]/@id").extract()
+    print(next_class.__contains__("ftConw"))
     name_xpath = "//*[@id='wrapper']//div//text()"
     tag_texts = sel.xpath(name_xpath).extract()
     for i in [i.strip() for i in tag_texts if not i.isspace()]:
