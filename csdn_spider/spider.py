@@ -8,7 +8,7 @@ from urllib import parse
 from selenium import webdriver
 from scrapy import Selector
 
-from csdn_spider.models import Topic
+from csdn_spider.models import *
 
 
 def get_cookies():
@@ -78,8 +78,8 @@ def get_all_usl():
     last_url_list = [i for i in all_nodes_list if i not in first_url_list]
     for url in last_url_list:
         all_url.append(parse.urljoin(main_url, url))
-        all_url.append(parse.urljoin(main_url, url+"/recommend"))
-        all_url.append(parse.urljoin(main_url, url+"/closed"))
+        all_url.append(parse.urljoin(main_url, url + "/recommend"))
+        all_url.append(parse.urljoin(main_url, url + "/closed"))
     print("Total nums: %d\nFirst level nums: %d\nLast level nums: %d\nAll url: %d"
           % (len(all_nodes_list), len(first_url_list), len(last_url_list), len(all_url)))
 
@@ -90,6 +90,7 @@ def parse_list(_url):
     :param _url: 链接
     :return:
     """
+    print(_url + " Start")
     rest_text = requests.get(_url, cookies=cookie_dic).text
     sel = Selector(text=rest_text)
     all_tr = sel.xpath("//table[@class='forums_tab_table']/tbody//tr")
@@ -125,18 +126,72 @@ def parse_list(_url):
             topic.save()
         else:
             topic.save(force_insert=True)
-
+        parse_topic(topic_url, True)
     print(_url + " Finished")
-    next_page_class = sel.xpath("//a[contains(@class,'next_page')]/@class").extract()[0].split(" ")
-    if not next_page_class.__contains__("disabled"):
-        next_page_url = sel.xpath("//a[contains(@class,'next_page')]/@href").extract()[0]
-        parse_list(parse.urljoin(main_url, next_page_url))
 
-        # parse_topic(topic_url)
+    next_page = sel.xpath("//a[@class='pageliststy next_page']/@href").extract()
+    if next_page:
+        next_url = parse.urljoin(main_url, next_page[0])
+        parse_list(next_url)
 
 
-def parse_topic():
-    pass
+def parse_topic(url, flag=False):
+    # 获取帖子的详情以及回复
+    topic_id = url.split("/")[-1].split("?")[0]
+    res_text = requests.get(url, cookies=cookie_dic)
+    res_text.encoding = res_text.apparent_encoding
+    sel = Selector(text=res_text.text)
+    all_divs = sel.xpath("//div[starts-with(@id, 'post-')]")
+    answer_start = 0
+    # topic
+    existed_topics = Topic.select().where(Topic.id == topic_id)
+    if flag and existed_topics:
+        answer_start = 1
+        topic_item = all_divs[0]
+        topic = existed_topics[0]
+        content = topic_item.xpath(".//div[@class='post_body post_body_min_h']//text()").getall()
+        content = "".join(content).strip()
+        topic.content = content
+        praised_nums = topic_item.xpath(".//label[@class='red_praise digg d_hide']//text()").getall()
+        praised_nums = "".join(praised_nums).strip().split(" ")
+        if len(praised_nums) > 1:
+            praised_nums = praised_nums[-1]
+            topic.praised_nums = praised_nums[-1]
+        jtl = topic_item.xpath(".//div[@class='close_topic']/text()").extract()[0]
+        jtl = re.search(r"(\d+)%", jtl)
+        if jtl:
+            jtl = jtl.group(1)
+            topic.jtl = jtl
+        topic.save()
+    # answer
+    for answer_item in all_divs[answer_start:]:
+        answer = Answer()
+        answer.topic_id = topic_id
+        author_info = answer_item.xpath(".//div[@class='nick_name']//a[1]/@href").extract()[0]
+        author_id = author_info.split("/")[-1]
+        create_time = answer_item.xpath(".//label[@class='date_time']/text()").extract()[0]
+        create_time = datetime.strptime(create_time, "%Y-%m-%d %H:%M:%S")
+        answer.author = author_id
+        answer.create_time = create_time
+        praised_nums = answer_item.xpath(".//label[@class='red_praise digg d_hide']//text()").getall()
+        praised_nums = "".join(praised_nums).strip().split(" ")
+        if len(praised_nums) > 1:
+            praised_nums = praised_nums[-1]
+            answer.praised_nums = praised_nums
+        content = answer_item.xpath(".//div[@class='post_body post_body_min_h']//text()").getall()
+        content = "".join(content).strip()
+        answer.content = content
+        answer.save()
+
+    next_page = sel.xpath("//a[@class='pageliststy next_page']/@href").extract()
+    if next_page:
+        next_url = parse.urljoin(main_url, next_page[0])
+        parse_topic(next_url)
+
+
+def parse_author(url):
+    res_text = requests.get(url, cookies=cookie_dic).text
+    sel = Selector(text=res_text)
 
 
 if __name__ == '__main__':
