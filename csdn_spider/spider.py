@@ -126,6 +126,7 @@ def parse_list(_url):
             topic.save()
         else:
             topic.save(force_insert=True)
+        parse_author(author_url)
         parse_topic(topic_url, True)
     print(_url + " Finished")
 
@@ -190,8 +191,37 @@ def parse_topic(url, flag=False):
 
 
 def parse_author(url):
-    res_text = requests.get(url, cookies=cookie_dic).text
+    # 获取用户的详情
+    author_id = url.split("/")[-1]
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0',
+    }
+    res_text = requests.get(url, cookies=cookie_dic, headers=headers).text
     sel = Selector(text=res_text)
+    author = Author()
+    author.id = author_id
+    original_rate = sel.xpath("//div[@class='me_chanel_det_item access']")
+    original_nums = original_rate[0].xpath("./a/span/text()").extract()
+    original_nums = int(original_nums[0].strip())
+    rate = original_rate[1].xpath("./span/text()").extract()
+    rate = rate[0].strip()
+    author.original_nums = original_nums
+    author.rate = rate
+    desc = sel.xpath("//div[@class='description clearfix']/p/text()").extract()
+    author.desc = desc[0].strip()
+    job = sel.xpath("//div[@class='job clearfix']/p/text()").extract()
+    author.job = job[0].strip()
+    fans = sel.xpath("//div[@class='fans']/a/span/text()").extract()
+    author.fans = int(fans[0].strip())
+    followers = sel.xpath("//div[@class='att']/a/span/text()").extract()
+    author.followers = int(followers[0].strip())
+    name = sel.xpath("//div[@class='lt_title']/text()").getall()
+    author.name = "".join(name).strip()
+    existed_author = Author.select().where(Author.id == author_id)
+    if existed_author:
+        author.save()
+    else:
+        author.save(force_insert=True)
 
 
 if __name__ == '__main__':

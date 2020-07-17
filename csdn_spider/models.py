@@ -39,23 +39,17 @@ class Answer(BaseModel):
 class Author(BaseModel):
     id = CharField(primary_key=True, max_length=190)
     name = CharField()
-    # 访问数
-    click_nums = IntegerField(default=0)
     # 原创数
     original_nums = IntegerField(default=0)
-    # 转发数
-    forward_nums = IntegerField(default=0)
     # 排名
-    rate = IntegerField(default=-1)
-    # 评论数
-    answer_nums = IntegerField(default=0)
-    # 获赞数
-    praised_nums = IntegerField(default=0)
+    rate = CharField(default="0")
     desc = TextField(null=True)
-    industry = CharField(null=True)
-    location = CharField(null=True)
-    follower_nums = IntegerField(default=0)
-    following_nums = IntegerField(default=0)
+    job = CharField(null=True)
+    # 粉丝数
+    fans = IntegerField(default=0)
+    # 关注数
+    followers = IntegerField(default=0)
+
 
 
 if __name__ == '__main__':
