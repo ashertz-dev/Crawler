@@ -1,11 +1,12 @@
 import re
 import ast
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 from urllib import parse
-from selenium import webdriver
 from scrapy import Selector
+from selenium import webdriver
 
 from csdn_spider.models import *
 
@@ -74,7 +75,7 @@ def get_all_url():
     :return:
     """
     get_leave_list(nodes_lists)
-    last_url_list = [i for i in all_nodes_list if i not in first_url_list]
+    last_url_list = [item for item in all_nodes_list if item not in first_url_list]
     for url in last_url_list:
         all_url.append(parse.urljoin(main_url, url))
         all_url.append(parse.urljoin(main_url, url + "/recommend"))
@@ -127,13 +128,13 @@ def parse_list(url):
             topic.save()
         else:
             topic.save(force_insert=True)
-        parse_author(author_url)
-        parse_topic(topic_url, True)
+        executor.submit(parse_topic, topic_url, True)
+        executor.submit(parse_author, author_url)
 
     next_page = sel.xpath("//a[@class='pageliststy next_page']/@href").extract()
     if next_page:
         next_url = parse.urljoin(main_url, next_page[0])
-        parse_list(next_url)
+        executor.submit(parse_list, next_url)
 
 
 def parse_topic(url, flag=False):
@@ -194,7 +195,7 @@ def parse_topic(url, flag=False):
     next_page = sel.xpath("//a[@class='pageliststy next_page']/@href").extract()
     if next_page:
         next_url = parse.urljoin(main_url, next_page[0])
-        parse_topic(next_url)
+        executor.submit(parse_topic, next_url)
 
 
 def parse_author(url):
@@ -242,4 +243,7 @@ if __name__ == '__main__':
     nodes_lists = get_nodes_json()
     get_cookies()
     get_all_url()
-    parse_list(all_url[0])
+    create_tables()
+    executor = ThreadPoolExecutor(max_workers=100)
+    for i in all_url:
+        executor.submit(parse_list, i)

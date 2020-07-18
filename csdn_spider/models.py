@@ -24,7 +24,7 @@ class Topic(BaseModel):
     # 赏分
     score = IntegerField(default=0)
     # 状态
-    status = CharField()
+    status = CharField(null=True)
     last_answer_time = DateTimeField()
 
 
@@ -40,17 +40,20 @@ class Author(BaseModel):
     id = CharField(primary_key=True, max_length=190)
     name = CharField()
     # 原创数
-    original_nums = IntegerField(default=0)
+    original_nums = CharField(default="0")
     # 排名
     rate = CharField(default="0")
     desc = TextField(null=True)
     job = CharField(null=True)
     # 粉丝数
-    fans = IntegerField(default=0)
+    fans = CharField(default="0")
     # 关注数
-    followers = IntegerField(default=0)
+    followers = CharField(default="0")
 
+
+def create_tables():
+    db.create_tables([Topic, Answer, Author])
 
 
 if __name__ == '__main__':
-    db.create_tables([Topic, Answer, Author])
+    create_tables()
