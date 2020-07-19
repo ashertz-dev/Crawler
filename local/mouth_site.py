@@ -3,11 +3,20 @@ import tkinter as tk
 
 
 def get_site():
+    """
+    获取鼠标坐标
+    :return: (x, y)
+    """
     site = pag.position()
     return site
 
 
 def print_down(*event):
+    """
+
+    :param event: bind会传入一个event对象
+    :return:
+    """
     x, y = get_site()
     print("X : {}\nY : {}".format(x, y))
 
