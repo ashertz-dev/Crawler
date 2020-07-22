@@ -1,5 +1,6 @@
 import re
 import ast
+import time
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -247,3 +248,4 @@ if __name__ == '__main__':
     executor = ThreadPoolExecutor(max_workers=100)
     for i in all_url:
         executor.submit(parse_list, i)
+        time.sleep(1)

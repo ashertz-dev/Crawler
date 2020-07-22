@@ -12,7 +12,7 @@
     peewee 测试
 
 #### csdn数据爬取已完成:
-    threadpool_spider 暂时还有问题未解决
+    threadpool_spider 已完成
     
 #### jd爬虫已完成
     selenium 爬取数据(仅测试了一件商品)
