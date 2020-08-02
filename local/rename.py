@@ -8,10 +8,11 @@ def file_dir(root):
     return file_names
 
 
-def rename(file_list, new_path):
+def rename(file_list):
     new_files = []
-    count = 0
     for file in file_list:
+        count = 0
+        print(file)
         f = re.sub(" ", "", file[0].split("-")[-1])
         new_name = re.sub("[.*?]", "", f)+" "
         if new_name == file[0]+" ":
@@ -21,7 +22,7 @@ def rename(file_list, new_path):
             if file_type in ["exe", "py", "spec", "pyc"]:
                 continue
             new_files.append([file[0]+"\\"+i,
-                              new_path+"\\"+new_name+"{:04d}.".format(count)+file_type])
+                              file[0]+"\\"+new_name+"{:04d}.".format(count)+file_type])
             count += 1
     for file in new_files:
         os.rename(file[0], file[1])
@@ -37,9 +38,7 @@ if __name__ == '__main__':
         if path == "0":
             path = os.getcwd()
         files = file_dir(path)
-        rename(files, path)
-        for rm in files[0][1]:
-            os.rmdir(path+"\\"+rm)
+        rename(files)
         print("finish")
         time.sleep(3)
     except Exception as e:
