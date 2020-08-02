@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 
 def file_dir(root):
@@ -16,8 +17,11 @@ def rename(file_list, new_path):
         if new_name == file[0]+" ":
             new_name = ""
         for i in file[2]:
+            file_type = i.split(".")[-1]
+            if file_type in ["exe", "py", "spec", "pyc"]:
+                continue
             new_files.append([file[0]+"\\"+i,
-                              new_path+"\\"+new_name+"{:04d}.".format(count)+i.split(".")[-1]])
+                              new_path+"\\"+new_name+"{:04d}.".format(count)+file_type])
             count += 1
     for file in new_files:
         os.rename(file[0], file[1])
@@ -28,10 +32,16 @@ if __name__ == '__main__':
     """
     用于重命名文件并提出子文件夹中的文件
     """
-    path = input("Please input path or input \"0\" to exit :\n")
-    if path == "0":
-        path = "E:\\Photos\\Cosplay\\Collection\\root_file_name"
-    files = file_dir(path)
-    rename(files, path)
-    for rm in files[0][1]:
-        os.rmdir(path+"\\"+rm)
+    try:
+        path = input("Please input path or input 0 :\n")
+        if path == "0":
+            path = os.getcwd()
+        files = file_dir(path)
+        rename(files, path)
+        for rm in files[0][1]:
+            os.rmdir(path+"\\"+rm)
+        print("finish")
+        time.sleep(3)
+    except Exception as e:
+        print(e)
+        time.sleep(3)

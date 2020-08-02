@@ -1,4 +1,5 @@
 import os
+import time
 
 from PIL import Image
 
@@ -12,13 +13,23 @@ class Pic:
         for files in self.files[:]:
             path = files[0]
             for file in files[2]:
-                file_path = path+"\\"+file
+                if file.split(".")[-1] not in ["jpg", "png", "gif", "jpeg", "JPG"]:
+                    continue
+                file_path = path + "\\" + file
                 img = Image.open(file_path)
                 if img.size[0] < img.size[1]:
                     img.close()
                     os.remove(file_path)
+                    print(file_path, "removed")
 
 
 if __name__ == '__main__':
-    pic = Pic(r"E:\Hypnos\Pictures\SavedPictures")
-    pic.deal_pic()
+    try:
+        pic = Pic(os.getcwd())
+        pic.deal_pic()
+        print("finish")
+        time.sleep(3)
+    except Exception as e:
+        print(e)
+        time.sleep(3)
+
